@@ -4,29 +4,26 @@ import AppBar from '@material-ui/core/AppBar';
 import Box from '@material-ui/core/Box';
 import Toolbar from '@material-ui/core/Toolbar';
 import Container from '@material-ui/core/Container';
-import { IconButton, Menu, MenuItem, Typography } from '@material-ui/core';
-import { Button } from '@material-ui/core';
+import { IconButton, Menu, MenuItem, Typography, Button } from '@material-ui/core';
 import Avatar from '@material-ui/core/Avatar';
 import MenuIcon from '@material-ui/icons/Menu';
 import { logout } from '@pega/auth/lib/sdk-auth-manager';
+import { PConnProps } from '../../../types/PConnProps';
 import './WssNavBar.css';
 
-// WssNavBar does NOT have getPConnect. So, no need to extend from PConnProps
-
-interface WssNavBarProps {
+interface WssNavBarProps extends PConnProps {
   // If any, enter additional props that only exist on this component
-  appInfo: any,
-  navLinks: Array<any>
-  operator: { currentUserInitials: string },
-  navDisplayOptions: { alignment: string, position: string},
+  appInfo: any;
+  navLinks: any[];
+  operator: { currentUserInitials: string };
+  navDisplayOptions: { alignment: string; position: string };
   // eslint-disable-next-line react/no-unused-prop-types
-  portalName: string,
-  imageSrc: string,
+  portalName: string;
+  imageSrc: string;
   // eslint-disable-next-line react/no-unused-prop-types
-  fullImageSrc: string,
-   appName: any
+  fullImageSrc: string;
+  appName: any;
 }
-
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -73,10 +70,7 @@ export default function WssNavBar(props: WssNavBarProps) {
   };
 
   const navLinksContent = (
-    <Box id="nav-links"
-      sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}
-      style={{ justifyContent: alignment }}
-    >
+    <Box id='nav-links' sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }} style={{ justifyContent: alignment }}>
       {navLinks.map(link => (
         <Button className='link-style' key={link.text} onClick={link.onClick}>
           {link.text}
@@ -90,7 +84,7 @@ export default function WssNavBar(props: WssNavBarProps) {
       <AppBar position='static' color='primary'>
         <Container maxWidth='xl'>
           <Toolbar disableGutters style={{ justifyContent: 'space-between' }}>
-            <Button id="appName" style={{ textTransform: 'capitalize' }} onClick={appInfo.onClick}>
+            <Button id='appName' style={{ textTransform: 'capitalize' }} onClick={appInfo.onClick}>
               <img src={appInfo.imageSrc} className={classes.appListLogo} />
               <span className={classes.appName}>{appInfo.appName}</span>
             </Button>

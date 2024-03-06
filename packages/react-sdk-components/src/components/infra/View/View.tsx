@@ -1,31 +1,24 @@
-import React from 'react';
-// import { FieldGroup } from "@pega/cosmos-react-core";
-// import { LazyMap as LazyComponentMap } from "../../components_map";
+import { PropsWithChildren } from 'react';
 
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-
 import { getAllFields } from '../../helpers/template-utils';
+import { PConnProps } from '../../../types/PConnProps';
 
 // Need to import any templates that we might render
 
 import './View.css';
 
-import type { PConnProps } from '../../../types/PConnProps';
-
-
 interface ViewProps extends PConnProps {
   // If any, enter additional props that only exist on this component
-  children: Array<any>,
-  template?: string,
-  label?: string,
-  showLabel: boolean,
-  mode?: string,
-  title?: string,
-  visibility?: boolean,
-  name?: string,
-  bInForm?: boolean
+  template?: string;
+  label?: string;
+  showLabel: boolean;
+  mode?: string;
+  title?: string;
+  visibility?: boolean;
+  name?: string;
+  bInForm?: boolean;
 }
-
 
 //
 // WARNING:  It is not expected that this file should be modified.  It is part of infrastructure code that works with
@@ -46,14 +39,14 @@ const NO_HEADER_TEMPLATES = [
   'DynamicTabs'
 ];
 
-export default function View(props: ViewProps) {
+export default function View(props: PropsWithChildren<ViewProps>) {
   const { children, template, getPConnect, mode, visibility, name: pageName } = props;
   let { label = '', showLabel = false } = props;
 
   // Get the inherited props from the parent to determine label settings. For 8.6, this is only for embedded data form views
   // Putting this logic here instead of copy/paste in every Form template index.js
 
-  const inheritedProps: any = getPConnect().getInheritedProps();  // try to remove any when getInheritedProps typedefs are fixed
+  const inheritedProps: any = getPConnect().getInheritedProps(); // try to remove any when getInheritedProps typedefs are fixed
   label = inheritedProps.label || label;
   showLabel = inheritedProps.showLabel || showLabel;
 
@@ -86,7 +79,11 @@ export default function View(props: ViewProps) {
     // console.log(`View rendering template: ${template}`);
 
     // spreading because all props should go to the template
-    let RenderedTemplate = <ViewTemplate key={key} {...props}>{children}</ViewTemplate>;
+    let RenderedTemplate = (
+      <ViewTemplate key={key} {...props}>
+        {children}
+      </ViewTemplate>
+    );
 
     if (FORMTEMPLATES.includes(template) && showLabel) {
       // Original:
@@ -129,7 +126,6 @@ export default function View(props: ViewProps) {
 
   return null;
 }
-
 
 // Adapted from Constellation DX Component to add in additional props for some templates
 View.additionalProps = (state, getPConnect) => {

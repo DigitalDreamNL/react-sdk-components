@@ -1,5 +1,4 @@
 /* eslint-disable react/no-array-index-key */
-import React from 'react';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
 import { PConnProps } from '../../../types/PConnProps';
 
@@ -8,7 +7,7 @@ interface ScalarListProps extends PConnProps {
   // If any, enter additional props that only exist on this component
   displayInModal: boolean;
   hideLabel: boolean;
-  value: Array<any>;
+  value: any[];
   componentType: string;
   label: string;
   displayMode: string;
@@ -30,15 +29,7 @@ export default function ScalarList(props: ScalarListProps) {
   // Get emitted components from map (so we can get any override that may exist)
   const FieldValueList = getComponentFromMap('FieldValueList');
 
-  const {
-    label,
-    getPConnect,
-    componentType,
-    value: scalarValues,
-    displayMode,
-    hideLabel,
-    ...restProps
-  } = props;
+  const { label, getPConnect, componentType, value: scalarValues, displayMode, hideLabel, ...restProps } = props;
 
   const items = scalarValues?.map(scalarValue => {
     return getPConnect().createComponent(
@@ -59,12 +50,11 @@ export default function ScalarList(props: ScalarListProps) {
   });
 
   if (['LABELS_LEFT', 'STACKED_LARGE_VAL', 'DISPLAY_ONLY'].includes(displayMode)) {
-    const displayComp = (
+    return (
       <div>
         <CommaSeparatedList items={items} />
       </div>
     );
-    return displayComp;
   }
 
   const displayComp = <CommaSeparatedList items={items} />;

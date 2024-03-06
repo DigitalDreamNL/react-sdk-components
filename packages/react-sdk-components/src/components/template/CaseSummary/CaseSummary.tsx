@@ -1,24 +1,22 @@
-import React from "react";
+import { PropsWithChildren, ReactElement } from 'react';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-
-import type { PConnProps } from '../../../types/PConnProps';
+import { PConnProps } from '../../../types/PConnProps';
 
 interface CaseSummaryProps extends PConnProps {
   // If any, enter additional props that only exist on this component
-  children: Array<any>
 }
 
-
-export default function CaseSummary(props: CaseSummaryProps) {
+export default function CaseSummary(props: PropsWithChildren<CaseSummaryProps>) {
   // Get emitted components from map (so we can get any override that may exist)
   const CaseSummaryFields = getComponentFromMap('CaseSummaryFields');
 
   const { getPConnect, children } = props;
+
   const thePConn = getPConnect();
-  const theConfigProps = thePConn.getConfigProps();
+  const theConfigProps: any = thePConn.getConfigProps();
   // const { status, showStatus } = theConfigProps;
-  const status = theConfigProps["status"];
-  const showStatus = theConfigProps["showStatus"];
+  const status = theConfigProps.status;
+  const showStatus = theConfigProps.showStatus;
 
   // from Constellation DX Components
   // get the primary and secondary fields with the raw data (which has the non-resolved property values)
@@ -28,15 +26,15 @@ export default function CaseSummary(props: CaseSummaryProps) {
 
   // From other SDKs
   // may want to move these into useEffect/useState combo
-  let arPrimaryFields:Array<any> = [];
-  let arSecondaryFields:Array<any> = [];
+  let arPrimaryFields: any[] = [];
+  let arSecondaryFields: any[] = [];
 
-  for (const child of children) {
-    const childPConn = child.props.getPConnect();
+  for (const child of children as ReactElement[]) {
+    const childPConn = (child as ReactElement).props.getPConnect();
     const childPConnData = childPConn.resolveConfigProps(childPConn.getRawMetadata());
-    if (childPConnData.name.toLowerCase() === "primary fields") {
+    if (childPConnData.name.toLowerCase() === 'primary fields') {
       arPrimaryFields = childPConnData.children;
-    } else if (childPConnData.name.toLowerCase() === "secondary fields") {
+    } else if (childPConnData.name.toLowerCase() === 'secondary fields') {
       arSecondaryFields = childPConnData.children;
     }
   }
@@ -49,9 +47,9 @@ export default function CaseSummary(props: CaseSummaryProps) {
   // console.log(`CaseSummary: arSecondaryFields: ${JSON.stringify(arSecondaryFields)}`);
 
   return (
-    <div id="CaseSummary">
+    <div id='CaseSummary'>
       <CaseSummaryFields status={status} showStatus={showStatus} theFields={arPrimaryFields} />
       <CaseSummaryFields theFields={arSecondaryFields} />
     </div>
-  )
+  );
 }

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { TextField } from '@material-ui/core';
+
 import handleEvent from '../../helpers/event-utils';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-import type { PConnFieldProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
 interface TextInputProps extends PConnFieldProps {
   // If any, enter additional props that only exist on TextInput here
@@ -33,7 +34,7 @@ export default function TextInput(props: TextInputProps) {
 
   const pConn = getPConnect();
   const actions = pConn.getActionsApi();
-  const propName = pConn.getStateProps()["value"];
+  const propName = (pConn.getStateProps() as any).value;
 
   const helperTextToDisplay = validatemessage || helperText;
 
@@ -51,7 +52,7 @@ export default function TextInput(props: TextInputProps) {
   }
 
   if (displayMode === 'STACKED_LARGE_VAL') {
-    return <FieldValueList name={hideLabel ? '' : label} value={value} variant="stacked" />;
+    return <FieldValueList name={hideLabel ? '' : label} value={value} variant='stacked' />;
   }
 
   if (readOnly) {
@@ -79,7 +80,7 @@ export default function TextInput(props: TextInputProps) {
       variant={readOnly ? 'standard' : 'outlined'}
       helperText={helperTextToDisplay}
       placeholder={placeholder ?? ''}
-      size="small"
+      size='small'
       required={required}
       disabled={disabled}
       onChange={handleChange}

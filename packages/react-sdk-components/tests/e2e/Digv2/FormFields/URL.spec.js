@@ -1,6 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-/* eslint-disable no-undef */
-
 const { test, expect } = require('@playwright/test');
 
 const config = require('../../../config');
@@ -81,18 +78,19 @@ test.describe('E2E test', () => {
     attributes = await common.getAttributes(readonlyURL);
     await expect(attributes.includes('readonly')).toBeTruthy();
 
-    const EditableURL = page.locator('input[data-test-id="79504c0d99166c4c0a0749bef59b5e0f"]');
-    attributes = await common.getAttributes(EditableURL);
+    const editableURL = page.locator('input[data-test-id="79504c0d99166c4c0a0749bef59b5e0f"]');
+    attributes = await common.getAttributes(editableURL);
     await expect(attributes.includes('readonly')).toBeFalsy();
 
     /** Validation tests */
     const validationMsg = 'valid URL';
-    await EditableURL.type('InvalidUrl');
-    await EditableURL.blur();
+    await editableURL.fill('InvalidUrl');
+    await editableURL.blur();
     await expect(page.locator(`p:has-text("${validationMsg}")`)).toBeVisible();
-    await EditableURL.clear();
-    await EditableURL.blur();
-    await expect(page.locator(`p:has-text("${validationMsg}")`)).toBeHidden();
+    await editableURL.click();
+    await editableURL.clear();
+    await editableURL.blur();
+    await expect(page.locator(`p:has-text("${validationMsg}")`)).toBeHidden({ timeout: 200 });
 
     /** Selecting Visibility from the Sub Category dropdown */
     selectedSubCategory = page.locator('div[data-test-id="9463d5f18a8924b3200b56efaad63bda"]');

@@ -1,19 +1,18 @@
-import React, { useState, useEffect, createElement } from 'react';
+import { useState, useEffect, createElement } from 'react';
 import { Box, Card, CircularProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import createPConnectComponent from '../../../bridge/react_pconnect';
 
-// import type { PConnProps } from '../../../types/PConnProps';
+import { PConnProps } from '../../../types/PConnProps';
 
-// Can't use PConnProps until typedefs for showData are fixed
-// interface DeferLoadProps extends PConnProps {
-//   // If any, enter additional props that only exist on this component
-//   name: string,
-//   isChildDeferLoad?: boolean,
-//   isTab: boolean
-// }
-
+interface DeferLoadProps extends PConnProps {
+  // If any, enter additional props that only exist on this component
+  name: string;
+  isChildDeferLoad?: boolean;
+  isTab: boolean;
+  deferLoadId: string;
+}
 
 //
 // WARNING:  It is not expected that this file should be modified.  It is part of infrastructure code that works with
@@ -34,26 +33,25 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function DeferLoad(props /* : DeferLoadProps */) {
+export default function DeferLoad(props: DeferLoadProps) {
   const { getPConnect, name, deferLoadId, isTab } = props;
   const [content, setContent] = useState<any>(null);
   const [isLoading, setLoading] = useState(true);
-  const [currentLoadedAssignment, setCurrentLoadedAssignment] = useState("");
+  const [currentLoadedAssignment, setCurrentLoadedAssignment] = useState('');
 
   const classes = useStyles();
 
   const pConnect = getPConnect();
   const constants = PCore.getConstants();
 
-  const theRequestedAssignment = pConnect.getValue( PCore.getConstants().CASE_INFO.ASSIGNMENT_LABEL, '');  // 2nd arg empty string until typedef allows optional
-  if (theRequestedAssignment !== currentLoadedAssignment)  {
+  const theRequestedAssignment = pConnect.getValue(PCore.getConstants().CASE_INFO.ASSIGNMENT_LABEL, ''); // 2nd arg empty string until typedef allows optional
+  if (theRequestedAssignment !== currentLoadedAssignment) {
     // console.log(`DeferLoad: currentLoadedAssignment about to change from ${currentLoadedAssignment} to ${theRequestedAssignment}`);
     setCurrentLoadedAssignment(theRequestedAssignment);
   }
 
   const { CASE, PAGE, DATA } = constants.RESOURCE_TYPES;
-  const loadViewCaseID =
-    pConnect.getValue(constants.PZINSKEY, '') || pConnect.getValue(constants.CASE_INFO.CASE_INFO_ID, '');  // 2nd arg empty string until typedef allows optional
+  const loadViewCaseID = pConnect.getValue(constants.PZINSKEY, '') || pConnect.getValue(constants.CASE_INFO.CASE_INFO_ID, ''); // 2nd arg empty string until typedef allows optional
   let containerName;
   let containerItemData;
   const targetName = pConnect.getTarget();
@@ -70,7 +68,7 @@ export default function DeferLoad(props /* : DeferLoadProps */) {
 
   const getViewOptions = () => ({
     viewContext: resourceType,
-    pageClass: loadViewCaseID ? '' : pConnect.getDataObject('').pyPortal.classID,  // 2nd arg empty string until typedef allows optional
+    pageClass: loadViewCaseID ? '' : (pConnect.getDataObject('') as any).pyPortal.classID, // 2nd arg empty string until typedef allows optional
     container: isContainerPreview ? 'preview' : null,
     containerName: isContainerPreview ? 'preview' : null,
     updateData: isContainerPreview
@@ -110,16 +108,14 @@ export default function DeferLoad(props /* : DeferLoadProps */) {
       // Rendering defer loaded tabs in data context
       if (containerName) {
         const dataContext = PCore.getStoreValue('.dataContext', 'dataInfo', containerName);
-        const dataContextParameters = PCore.getStoreValue(
-          '.dataContextParameters',
-          'dataInfo',
-          containerName
-        );
+        const dataContextParameters = PCore.getStoreValue('.dataContextParameters', 'dataInfo', containerName);
 
         getPConnect()
           .getActionsApi()
-          .showData(name, dataContext, dataContextParameters, {   // Need to wait for typedefs to be fixed for showData
+          .showData(name, dataContext, dataContextParameters, {
+            // @ts-ignore - Type 'boolean' is not assignable to type 'string'
             skipSemanticUrl: true,
+            // @ts-ignore
             isDeferLoaded: true
           })
           .then(data => {
@@ -140,7 +136,7 @@ export default function DeferLoad(props /* : DeferLoadProps */) {
     } else {
       getPConnect()
         .getActionsApi()
-        .refreshCaseView(encodeURI(loadViewCaseID), name, '')  // 3rd arg empty string until typedef allows optional
+        .refreshCaseView(encodeURI(loadViewCaseID), name, '') // 3rd arg empty string until typedef allows optional
         .then(data => {
           onResponse(data.root);
         });
@@ -158,12 +154,10 @@ export default function DeferLoad(props /* : DeferLoadProps */) {
     );
   } else {
     deferLoadContent = !isTab ? (
-      <div className={classes.root}>
-        <React.Fragment>{content}</React.Fragment>
-      </div>
+      <div className={classes.root}>{content}</div>
     ) : (
       <Card id='DeferLoad' className={classes.root}>
-        <React.Fragment>{content}</React.Fragment>
+        <>{content}</>
       </Card>
     );
   }

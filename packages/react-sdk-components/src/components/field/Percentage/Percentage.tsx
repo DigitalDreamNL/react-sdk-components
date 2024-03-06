@@ -1,9 +1,8 @@
-import React from 'react';
 import { TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-import type { PConnFieldProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
 // Inspired by https://stackoverflow.com/questions/50823182/material-ui-remove-up-down-arrow-dials-from-textview
 const useStyles = makeStyles((/* theme */) => ({
@@ -58,7 +57,7 @@ export default function Percentage(props: PercentageProps) {
   }
 
   if (displayMode === 'STACKED_LARGE_VAL') {
-    return <FieldValueList name={hideLabel ? '' : label} value={value} variant="stacked" />;
+    return <FieldValueList name={hideLabel ? '' : label} value={value} variant='stacked' />;
   }
 
   if (readOnly) {
@@ -78,7 +77,7 @@ export default function Percentage(props: PercentageProps) {
       variant={readOnly ? 'standard' : 'outlined'}
       helperText={helperTextToDisplay}
       placeholder={placeholder ?? ''}
-      size="small"
+      size='small'
       required={required}
       disabled={disabled}
       onChange={onChange}
@@ -86,7 +85,7 @@ export default function Percentage(props: PercentageProps) {
       error={status === 'error'}
       label={label}
       value={value}
-      type="number"
+      type='number'
       inputProps={{ ...testProp }}
     />
   );

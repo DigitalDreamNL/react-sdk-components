@@ -1,28 +1,27 @@
-import React from "react";
 import { Utils } from '../../helpers/utils';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-// import type { PConnProps } from '../../../types/PConnProps';
+import { PConnProps } from '../../../types/PConnProps';
 
-// Can't add PConnTypes until we can resolve type problems with
-//  2nd arg to createWork
-// interface QuickCreateProps extends PConnProps {
-//   // If any, enter additional props that only exist on this component
-// }
+interface QuickCreateProps extends PConnProps {
+  // If any, enter additional props that only exist on this component
+  heading: string;
+  showCaseIcons: boolean;
+  classFilter: any[];
+}
 
-
-export default function QuickCreate(props /* : QuickCreateProps */) {
+export default function QuickCreate(props: QuickCreateProps) {
   // Get emitted components from map (so we can get any override that may exist)
   const WssQuickCreate = getComponentFromMap('WssQuickCreate');
 
   const { getPConnect, heading, showCaseIcons, classFilter } = props;
   const pConn = getPConnect();
-  const createCase = (className) => {
+  const createCase = className => {
     pConn
       .getActionsApi()
-      .createWork(className, { })
-      .catch((error) => {
+      .createWork(className, {} as any)
+      .catch(error => {
         // eslint-disable-next-line no-console
-        console.log('Error in case creation: ', error?.message)
+        console.log('Error in case creation: ', error?.message);
       });
   };
 
@@ -34,10 +33,10 @@ export default function QuickCreate(props /* : QuickCreateProps */) {
     envInfo.environmentInfoObject.pyCaseTypeList &&
     envInfo.environmentInfoObject.pyCaseTypeList.length > 0
   ) {
-    classFilter.forEach((item) => {
+    classFilter.forEach(item => {
       let icon = Utils.getImageSrc('polaris-solid', Utils.getSDKStaticConentUrl());
       let label = '';
-      envInfo.environmentInfoObject.pyCaseTypeList.forEach((casetype) => {
+      envInfo.environmentInfoObject.pyCaseTypeList.forEach(casetype => {
         if (casetype.pyWorkTypeImplementationClassName === item) {
           icon = casetype.pxIcon && Utils.getImageSrc(casetype?.pxIcon, Utils.getSDKStaticConentUrl());
           label = casetype.pyWorkTypeName ?? '';
@@ -56,8 +55,8 @@ export default function QuickCreate(props /* : QuickCreateProps */) {
   }
 
   return (
-      <div>
-        <WssQuickCreate heading={heading} actions={cases}></WssQuickCreate>
-      </div>
-    );
+    <div>
+      <WssQuickCreate heading={heading} actions={cases} />
+    </div>
+  );
 }

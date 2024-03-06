@@ -1,7 +1,7 @@
-import React from 'react';
 import { TextField } from '@material-ui/core';
+
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-import type { PConnFieldProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
 interface URLComponentProps extends PConnFieldProps {
   // If any, enter additional props that only exist on URLComponent here
@@ -38,7 +38,7 @@ export default function URLComponent(props: URLComponentProps) {
   }
 
   if (displayMode === 'STACKED_LARGE_VAL') {
-    return <FieldValueList name={hideLabel ? '' : label} value={value} variant="stacked" />;
+    return <FieldValueList name={hideLabel ? '' : label} value={value} variant='stacked' />;
   }
 
   if (readOnly) {
@@ -53,12 +53,12 @@ export default function URLComponent(props: URLComponentProps) {
 
   return (
     <TextField
-      type="url"
+      type='url'
       fullWidth
-      variant="outlined"
+      variant='outlined'
       helperText={helperTextToDisplay}
       placeholder={placeholder ?? ''}
-      size="small"
+      size='small'
       required={required}
       disabled={disabled}
       onChange={onChange}

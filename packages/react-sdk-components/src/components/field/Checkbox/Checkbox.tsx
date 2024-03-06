@@ -1,48 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  FormGroup,
-  FormHelperText
-} from '@material-ui/core';
+import { useState, useEffect } from 'react';
+import { Checkbox, FormControl, FormControlLabel, FormGroup, FormHelperText } from '@material-ui/core';
+
 import handleEvent from '../../helpers/event-utils';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-// import type { PConnProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
-// Checkbox passes in 'value' as a boolean. So can't use the default
-//  PConnFieldProps since it expects value to be a string.
-// But can't use CheckBoxProps until getValidationApi() knows about validate method
-//  Currently just thinks that returns an "object"
-// interface CheckboxProps extends PConnProps {
-//   // If any, enter additional props that only exist on Checkbox here
-//   // Everything from PConnFieldProps except value and change type of value to boolean
+interface CheckboxProps extends Omit<PConnFieldProps, 'value'> {
+  // If any, enter additional props that only exist on Checkbox here
+  value?: boolean;
+  // eslint-disable-next-line react/no-unused-prop-types
+  caption?: string;
+  trueLabel?: string;
+  falseLabel?: string;
+}
 
-//   value?: boolean,
-//   label: string,
-//   required: boolean,
-//   disabled: boolean,
-//   validatemessage: string,
-//   status?: string,
-//   // eslint-disable-next-line react/no-unused-prop-types
-//   onChange: any,
-//   // eslint-disable-next-line react/no-unused-prop-types
-//   onBlur?: any,
-//   readOnly: boolean,
-//   testId: string,
-//   helperText: string,
-//   displayMode?: string,
-//   hideLabel: boolean,
-//   // eslint-disable-next-line react/no-unused-prop-types
-//   placeholder?: string
-// }
-export default function CheckboxComponent(props /* : CheckboxProps */) {
+export default function CheckboxComponent(props: CheckboxProps) {
   // Get emitted components from map (so we can get any override that may exist)
   const FieldValueList = getComponentFromMap('FieldValueList');
 
   const {
     getPConnect,
-    label,
     value = false,
     readOnly,
     testId,
@@ -52,15 +29,17 @@ export default function CheckboxComponent(props /* : CheckboxProps */) {
     helperText,
     validatemessage,
     displayMode,
-    hideLabel
+    hideLabel,
+    trueLabel,
+    falseLabel
   } = props;
   const helperTextToDisplay = validatemessage || helperText;
 
   const thePConn = getPConnect();
-  const theConfigProps = thePConn.getConfigProps();
-  const caption = theConfigProps['caption'];
+  const theConfigProps = thePConn.getConfigProps() as CheckboxProps;
+  const caption = theConfigProps.caption;
   const actionsApi = thePConn.getActionsApi();
-  const propName = thePConn.getStateProps()['value'];
+  const propName = (thePConn.getStateProps() as any).value;
 
   const [checked, setChecked] = useState(false);
   useEffect(() => {
@@ -69,13 +48,11 @@ export default function CheckboxComponent(props /* : CheckboxProps */) {
   }, [value]);
 
   if (displayMode === 'LABELS_LEFT') {
-    return <FieldValueList name={hideLabel ? '' : label} value={value.toString()} />;
+    return <FieldValueList name={hideLabel ? '' : caption} value={value ? trueLabel : falseLabel} />;
   }
 
   if (displayMode === 'STACKED_LARGE_VAL') {
-    return (
-      <FieldValueList name={hideLabel ? '' : label} value={value.toString()} variant='stacked' />
-    );
+    return <FieldValueList name={hideLabel ? '' : caption} value={value ? trueLabel : falseLabel} variant='stacked' />;
   }
 
   const handleChange = event => {
@@ -83,7 +60,7 @@ export default function CheckboxComponent(props /* : CheckboxProps */) {
   };
 
   const handleBlur = event => {
-    thePConn.getValidationApi().validate(event.target.checked, ''); // 2nd arg empty string until typedef marked correctly as optional
+    thePConn.getValidationApi().validate(event.target.checked);
   };
 
   let theCheckbox = <Checkbox color='primary' disabled={disabled} />;

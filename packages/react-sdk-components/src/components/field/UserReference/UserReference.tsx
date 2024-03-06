@@ -1,11 +1,10 @@
-import React, { Fragment, memo, useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Typography } from '@material-ui/core';
-import { getUserId, isUserNameAvailable } from './UserReferenceUtils';
-import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-import type { PConnProps } from '../../../types/PConnProps';
 
-// Remove this and use "real" PCore type once .d.ts is fixed (currently shows 1 errors)
-declare const PCore: any;
+import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
+import { PConnProps } from '../../../types/PConnProps';
+
+import { getUserId, isUserNameAvailable } from './UserReferenceUtils';
 
 const DROPDOWN_LIST = 'Drop-down list';
 const SEARCH_BOX = 'Search box';
@@ -50,7 +49,7 @@ const UserReference = (props: UserReferenceProps) => {
     required = false,
     disabled = false,
     onChange,
-    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     variant = 'inline'
   } = props;
   const [dropDownDataSource, setDropDownDataSource] = useState([]);
@@ -66,7 +65,7 @@ const UserReference = (props: UserReferenceProps) => {
         // if same user ref field is referred in view as editable & readonly formatted text
         // referenced users won't be available, so get user details from dx api
         const { getOperatorDetails } = PCore.getUserApi();
-        getOperatorDetails(userId).then((res) => {
+        getOperatorDetails(userId).then((res: any) => {
           if (res.data && res.data.pyOperatorInfo && res.data.pyOperatorInfo.pyUserName) {
             setUserName(res.data.pyOperatorInfo.pyUserName);
           }
@@ -76,16 +75,19 @@ const UserReference = (props: UserReferenceProps) => {
       const queryPayload = {
         dataViewName: OPERATORS_DP
       };
+
       PCore.getRestClient()
+        // @ts-ignore - Argument of type '{ queryPayload: { dataViewName: string; }; }' is not assignable to parameter of type 'RestApiOptionsObject'
+        // @ts-ignore - Expected 3 arguments, but got 2
         .invokeRestApi('getListData', { queryPayload })
-        .then((res) => {
-          const ddDataSource = res.data.data.map((listItem) => ({
+        .then((res: any) => {
+          const ddDataSource = res.data.data.map(listItem => ({
             key: listItem.pyUserIdentifier,
             value: listItem.pyUserName
           }));
           setDropDownDataSource(ddDataSource);
         })
-        .catch((err) => {
+        .catch(err => {
           // eslint-disable-next-line no-console
           console.error(err);
         });
@@ -97,15 +99,15 @@ const UserReference = (props: UserReferenceProps) => {
   if (readOnly && showAsFormattedText) {
     if (userId) {
       userReferenceComponent = (
-        <Fragment>
+        <>
           {/*
             TODO: This has to be replaced with Operator Component
           */}
           <div>
-            <Typography variant="caption">{label}</Typography>
-            <Typography variant="body1">{userName}</Typography>
+            <Typography variant='caption'>{label}</Typography>
+            <Typography variant='body1'>{userName}</Typography>
           </div>
-        </Fragment>
+        </>
       );
     }
   } else {
@@ -133,7 +135,7 @@ const UserReference = (props: UserReferenceProps) => {
           label={label}
           getPConnect={getPConnect}
           datasource={OPERATORS_DP}
-          listType="datapage"
+          listType='datapage'
           columns={columns}
           testId={testId}
           placeholder={placeholder}
@@ -153,7 +155,7 @@ const UserReference = (props: UserReferenceProps) => {
         <Dropdown
           additionalProps={additionalProps}
           datasource={dropDownDataSource}
-          listType="associated"
+          listType='associated'
           getPConnect={getPConnect}
           label={label}
           value={userId}

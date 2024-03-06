@@ -1,6 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-/* eslint-disable no-undef */
-
 const { test, expect } = require('@playwright/test');
 
 const config = require('../../../config');
@@ -84,7 +81,7 @@ test.describe('E2E test', () => {
     await expect(attributes.includes('readonly')).toBeTruthy();
 
     const editablePercentage = page.locator('input[data-test-id="2cf58b575154624084c009d2648659ad"]');
-    editablePercentage.type('10000');
+    editablePercentage.fill('10000');
 
     attributes = await common.getAttributes(editablePercentage);
     await expect(attributes.includes('readonly')).toBeFalsy();
@@ -110,5 +107,5 @@ test.describe('E2E test', () => {
   }, 10000);
 });
 
-const outputDir = './test-reports/e2e/DigV2/FormFields/Percentage'
+const outputDir = './test-reports/e2e/DigV2/FormFields/Percentage';
 test.afterEach(async ({ page }) => await common.calculateCoverage(page, outputDir));

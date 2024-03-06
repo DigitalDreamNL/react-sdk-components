@@ -1,21 +1,31 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import React from 'react';
-import { buildMetaForListView, getContext } from '../../../helpers/simpleTableHelpers';
 import { useRef } from 'react';
+
+import { buildMetaForListView, getContext } from '../../../helpers/simpleTableHelpers';
 import { getComponentFromMap } from '../../../../bridge/helpers/sdk_component_map';
 
-// import type { PConnProps } from '../../../../types/PConnProps';
+import { PConnProps } from '../../../../types/PConnProps';
 
 // Can't use SimpleTableProps until getComponentConfig() and getFieldMetadata() are NOT private
-// interface SimpleTableProps extends PConnProps {
-//   // If any, enter additional props that only exist on this component
-//   multiRecordDisplayAs: string,
-//   allowTableEdit: boolean,
-//   contextClass: any
-// }
-declare const PCore: any;
+interface SimpleTableProps extends PConnProps {
+  // If any, enter additional props that only exist on this component
+  multiRecordDisplayAs: string;
+  allowTableEdit: boolean;
+  contextClass: any;
+  label: string;
+  propertyLabel?: string;
+  displayMode?: string;
+  fieldMetadata?: any;
+  hideLabel?: boolean;
+  parameters?: any;
+  isDataObject?: boolean;
+  type?: string;
+  ruleClass?: string;
+  authorContext?: string;
+  name?: string;
+}
 
-export default function SimpleTable(props /* : SimpleTableProps */) {
+export default function SimpleTable(props: SimpleTableProps) {
   // Get emitted components from map (so we can get any override that may exist)
   const ListView = getComponentFromMap('ListView');
   const FieldGroupTemplate = getComponentFromMap('FieldGroupTemplate');
@@ -40,12 +50,14 @@ export default function SimpleTable(props /* : SimpleTableProps */) {
 
   let { contextClass } = props;
   if (!contextClass) {
+    // @ts-ignore - Property 'getComponentConfig' is private and only accessible within class 'C11nEnv'.
     let listName = getPConnect().getComponentConfig().referenceList;
     listName = PCore.getAnnotationUtils().getPropertyName(listName);
     // was... contextClass = getPConnect().getFieldMetadata(listName)?.pageClass;
+    // @ts-ignore - Property 'getFieldMetadata' is private and only accessible within class 'C11nEnv'.
     const theFieldMetadata = getPConnect().getFieldMetadata(listName);
     if (theFieldMetadata) {
-      contextClass = theFieldMetadata['pageClass'];
+      contextClass = theFieldMetadata.pageClass;
     } else {
       contextClass = undefined;
     }
@@ -59,15 +71,11 @@ export default function SimpleTable(props /* : SimpleTableProps */) {
   const propsToUse = { label, ...getPConnect().getInheritedProps() };
   const isDisplayModeEnabled = displayMode === 'DISPLAY_ONLY';
 
-  if (
-    fieldMetadata &&
-    fieldMetadata.type === 'Page List' &&
-    fieldMetadata.dataRetrievalType === 'refer'
-  ) {
+  if (fieldMetadata && fieldMetadata.type === 'Page List' && fieldMetadata.dataRetrievalType === 'refer') {
     const {
       children: [{ children: rawFields }],
       parameters: rawParams
-    } = getPConnect().getRawMetadata().config;
+    } = (getPConnect().getRawMetadata() as any).config;
     if (isDisplayModeEnabled && hideLabel) {
       propsToUse.label = '';
     }
@@ -84,8 +92,8 @@ export default function SimpleTable(props /* : SimpleTableProps */) {
     );
 
     const metaForPConnect = JSON.parse(JSON.stringify(metaForListView));
-    metaForPConnect.config.parameters =
-      rawParams ?? PCore.getMetadataUtils().getPropertyMetadata(name)?.datasource?.parameters;
+    // @ts-ignore - PCore.getMetadataUtils().getPropertyMetadata - An argument for 'currentClassID' was not provided.
+    metaForPConnect.config.parameters = rawParams ?? PCore.getMetadataUtils().getPropertyMetadata(name)?.datasource?.parameters;
 
     const { referenceListStr: referenceList } = getContext(getPConnect());
     let requiredContextForQueryInDisplayMode = {};
@@ -100,9 +108,7 @@ export default function SimpleTable(props /* : SimpleTableProps */) {
       ...requiredContextForQueryInDisplayMode
     };
 
-    const refToPConnect = useRef(
-      PCore.createPConnect({ meta: metaForPConnect, options }).getPConnect
-    ).current; // getPConnect should be created only once.
+    const refToPConnect = useRef(PCore.createPConnect({ meta: metaForPConnect, options }).getPConnect).current; // getPConnect should be created only once.
     /* BUG-637178 : need to send context */
     const listViewProps = {
       ...metaForListView.config,
@@ -111,15 +117,13 @@ export default function SimpleTable(props /* : SimpleTableProps */) {
       fieldName: authorContext,
       bInForm: true
     };
-    const listViewComponent = <ListView {...listViewProps} />;
-    return listViewComponent;
-  } else {
-    const simpleTableManualProps = { ...props, contextClass };
-    if (allowTableEdit === false) {
-      simpleTableManualProps.hideAddRow = true;
-      simpleTableManualProps.hideDeleteRow = true;
-      simpleTableManualProps.disableDragDrop = true;
-    }
-    return <SimpleTableManual {...simpleTableManualProps} />;
+    return <ListView {...listViewProps} />;
   }
+  const simpleTableManualProps: any = { ...props, contextClass };
+  if (allowTableEdit === false) {
+    simpleTableManualProps.hideAddRow = true;
+    simpleTableManualProps.hideDeleteRow = true;
+    simpleTableManualProps.disableDragDrop = true;
+  }
+  return <SimpleTableManual {...simpleTableManualProps} />;
 }

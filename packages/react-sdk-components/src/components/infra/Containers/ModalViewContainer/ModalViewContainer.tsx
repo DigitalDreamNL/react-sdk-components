@@ -1,27 +1,25 @@
-import React, { useEffect, useRef, useState, createElement } from 'react';
+import { createElement, useEffect, useRef, useState } from 'react';
 import isEqual from 'fast-deep-equal';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { makeStyles } from '@material-ui/core/styles';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DayjsUtils from '@date-io/dayjs';
+
 import createPConnectComponent from '../../../../bridge/react_pconnect';
 // Need to get correct implementation from component map for Assignment and CancelAlert
 import { getComponentFromMap } from '../../../../bridge/helpers/sdk_component_map';
 import { getBanners } from '../../../helpers/case-utils';
 import { isEmptyObject } from '../../../helpers/common-utils';
-// import type { PConnProps } from '../../../../types/PConnProps';
+import { PConnProps } from '../../../../types/PConnProps';
 
-// Can't use ModalViewContainerProps until getContainerManager() knows about initializeContainers
-//  Currently just expects "object"
-// interface ModalViewContainerProps extends PConnProps {
-//   // If any, enter additional props that only exist on this component
-//   loadingInfo?: string,
-//   routingInfo?: any,
-//   pageMessages?: Array<string>
-// }
-
-// Remove this and use "real" PCore type once .d.ts is fixed (currently shows 8 errors)
-declare const PCore: any;
+interface ModalViewContainerProps extends PConnProps {
+  // If any, enter additional props that only exist on this component
+  loadingInfo?: string;
+  routingInfo?: any;
+  pageMessages?: string[];
+}
 
 function buildName(pConnect, name = '') {
   const context = pConnect.getContextName();
@@ -55,7 +53,7 @@ function getConfigObject(item, pConnect) {
   return null;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   dlgTitle: {
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
@@ -78,7 +76,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function ModalViewContainer(props /* : ModalViewContainerProps */) {
+export default function ModalViewContainer(props: ModalViewContainerProps) {
   // Get the proper implementation (local or Pega-provided) for these components that are emitted below
   const Assignment = getComponentFromMap('Assignment');
   const CancelAlert = getComponentFromMap('CancelAlert');
@@ -100,7 +98,7 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
   const [oCaseInfo, setOCaseInfo] = useState({});
   const [createdView, setCreatedView] = useState<any>(null);
   const [title, setTitle] = useState('');
-  const [arNewChildrenAsReact, setArNewChildrenAsReact] = useState<Array<any>>([]);
+  const [arNewChildrenAsReact, setArNewChildrenAsReact] = useState<any[]>([]);
   const [itemKey, setItemKey] = useState('');
   const [cancelPConn, setCancelPConn] = useState(null);
   const [isMultiRecordData, setMultiRecordData] = useState(false);
@@ -119,7 +117,7 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
     */
     if (latestItem && isModalAction && !actionsDialog.current) {
       const configObject = getConfigObject(latestItem, pConn);
-      setCancelPConn(configObject.getPConnect());
+      setCancelPConn(configObject?.getPConnect() as any);
       setShowCancelAlert(true);
     }
   }
@@ -147,7 +145,7 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
     return bRet;
   }
 
-  const updateAlertState = (modalFlag) => {
+  const updateAlertState = modalFlag => {
     setShowCancelAlert(false);
     setShowModal(modalFlag);
   };
@@ -191,8 +189,8 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
           const currentItem = currentItems[key];
           const rootView = currentItem.view;
           const { context } = rootView.config;
-          const config = { meta: rootView };
-          config['options'] = {
+          const config: any = { meta: rootView };
+          config.options = {
             context: currentItem.context,
             hasForm: true,
             pageReference: context || pConn.getPageReference()
@@ -209,6 +207,7 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
           //    The config has meta.config.type = "view"
           const newComp = configObject.getPConnect();
           // const newCompName = newComp.getComponentName();
+          // @ts-ignore - parameter “contextName” for getDataObject method should be optional
           const caseInfo = newComp && newComp.getDataObject() && newComp.getDataObject().caseInfo ? newComp.getDataObject().caseInfo : null;
 
           // console.log(`ModalViewContainer just created newComp: ${newCompName}`);
@@ -244,11 +243,16 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
             const headingValue =
               isDataObject || isMultiRecord
                 ? getModalHeading(dataObjectAction)
-                : determineModalHeaderByAction(actionName, caseTypeName, ID, `${theNewCaseInfo?.getClassName()}!CASE!${theNewCaseInfo.getName()}`.toUpperCase());
+                : determineModalHeaderByAction(
+                    actionName,
+                    caseTypeName,
+                    ID,
+                    `${theNewCaseInfo?.getClassName()}!CASE!${theNewCaseInfo.getName()}`.toUpperCase()
+                  );
 
             setTitle(headingValue);
 
-            let arChildrenAsReact: Array<any> = [];
+            let arChildrenAsReact: any[] = [];
 
             if (newComp.getComponentName() === 'reference') {
               // Reference component doesn't have children. It can build the View we want.
@@ -264,10 +268,13 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
               // This is the 8.6 implementation. Leaving it in for reference for now.
               // And create a similar array of the children as React components
               //  passed to Assignment component when rendered
-              arChildrenAsReact = newComp.getChildren().map((child) => {
+              arChildrenAsReact = (newComp.getChildren() as []).map((child: any) => {
                 // Use Case Summary ID as the React element's key
                 const caseSummaryID = child.getPConnect().getCaseSummary().ID;
-                return createElement(createPConnectComponent(), { ...child, key: caseSummaryID });
+                return createElement(createPConnectComponent(), {
+                  ...child,
+                  key: caseSummaryID
+                });
               });
             }
 
@@ -313,33 +320,33 @@ export default function ModalViewContainer(props /* : ModalViewContainerProps */
 
   return (
     <>
-      <Dialog open={bShowModal} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title" className={classes.dlgTitle}>
+      <Dialog open={bShowModal} aria-labelledby='form-dialog-title'>
+        <DialogTitle id='form-dialog-title' className={classes.dlgTitle}>
           {title}
         </DialogTitle>
         <DialogContent className={classes.dlgContent}>
           {bShowModal ? (
-            <Assignment
-              getPConnect={createdView.configObject.getPConnect}
-              itemKey={itemKey}
-              isInModal
-              banners={getBanners({
-                target: itemKey,
-                pageMessages
-              })}
-            >
-              {arNewChildrenAsReact}
-            </Assignment>
-          ) : (
-            <></>
-          )}
+            <MuiPickersUtilsProvider utils={DayjsUtils}>
+              <Assignment
+                getPConnect={createdView.configObject.getPConnect}
+                itemKey={itemKey}
+                isInModal
+                banners={getBanners({
+                  target: itemKey,
+                  pageMessages
+                })}
+              >
+                {arNewChildrenAsReact}
+              </Assignment>
+            </MuiPickersUtilsProvider>
+          ) : null}
         </DialogContent>
         {isMultiRecordData && (
           <ListViewActionButtons
             getPConnect={createdView.configObject.getPConnect}
             context={createdView.latestItem.context}
             closeActionsDialog={closeActionsDialog}
-          ></ListViewActionButtons>
+          />
         )}
       </Dialog>
       {bShowCancelAlert && <CancelAlert pConn={cancelPConn} showAlert={bShowCancelAlert} updateAlertState={updateAlertState} />}

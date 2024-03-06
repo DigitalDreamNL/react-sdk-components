@@ -1,6 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-/* eslint-disable no-undef */
-
 const { test, expect } = require('@playwright/test');
 
 const config = require('../../../config');
@@ -87,7 +84,7 @@ test.describe('E2E test', () => {
     await page.locator('text=United States+1 >> nth=0').click();
     const editablePhoneInput = editablePhone.locator('input');
     await editablePhoneInput.click();
-    await editablePhoneInput.type('6175551212');
+    await editablePhoneInput.fill('6175551212');
 
     /** Validation tests */
     const validationMsg = 'Invalid Phone';
@@ -96,7 +93,7 @@ test.describe('E2E test', () => {
     await page.locator('text=United States+1 >> nth=0').click();
     await editablePhoneInput.click();
     /** Entering an invalid Phone number */
-    await editablePhoneInput.type('61');
+    await editablePhoneInput.fill('61');
     await editablePhoneInput.blur();
     /** Expecting an error for Invalid phone number */
     await expect(page.locator(`p:has-text("${validationMsg}")`)).toBeVisible();
@@ -105,7 +102,7 @@ test.describe('E2E test', () => {
     await editablePhoneInput.clear();
     await countrySelector.click();
     await page.locator('text=United States+1 >> nth=0').click();
-    await editablePhoneInput.type('6175551212');
+    await editablePhoneInput.fill('6175551212');
 
     await editablePhoneInput.blur();
     /** Expecting the invalid Phone number error be no longer present */

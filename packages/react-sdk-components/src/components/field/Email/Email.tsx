@@ -1,8 +1,8 @@
-import React from 'react';
-import { TextField, InputAdornment } from '@material-ui/core';
+import { InputAdornment, TextField } from '@material-ui/core';
 import MailOutlineIcon from '@material-ui/icons/MailOutline';
+
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-import type { PConnFieldProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
 interface EmailProps extends PConnFieldProps {
   // If any, enter additional props that only exist on Date here
@@ -36,7 +36,7 @@ export default function Email(props: EmailProps) {
   }
 
   if (displayMode === 'STACKED_LARGE_VAL') {
-    return <FieldValueList name={hideLabel ? '' : label} value={value} variant="stacked" />;
+    return <FieldValueList name={hideLabel ? '' : label} value={value} variant='stacked' />;
   }
 
   if (readOnly) {
@@ -52,10 +52,10 @@ export default function Email(props: EmailProps) {
   return (
     <TextField
       fullWidth
-      variant="outlined"
+      variant='outlined'
       helperText={helperTextToDisplay}
       placeholder={placeholder ?? ''}
-      size="small"
+      size='small'
       required={required}
       disabled={disabled}
       onChange={onChange}
@@ -63,10 +63,10 @@ export default function Email(props: EmailProps) {
       error={status === 'error'}
       label={label}
       value={value}
-      type="email"
+      type='email'
       InputProps={{
         startAdornment: (
-          <InputAdornment position="start">
+          <InputAdornment position='start'>
             <MailOutlineIcon />
           </InputAdornment>
         ),

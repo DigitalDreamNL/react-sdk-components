@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 const { test, expect } = require('@playwright/test');
 import { attachCoverageReport } from 'monocart-reporter';
 
@@ -16,21 +15,24 @@ const launchEmbedded = async ({ page }) => {
 
 const launchSelfServicePortal = async ({ page }) => {
   await page.setViewportSize({ width: 1720, height: 1080 });
-  await page.goto(`${config.baseUrl}/portal?portal=DigV2SelfService`, { waitUntil: 'networkidle' });
+  await page.goto(`${config.baseUrl}/portal?portal=DigV2SelfService`, {
+    waitUntil: 'networkidle'
+  });
 };
 
 const login = async (username, password, page) => {
-  await page.locator('input[id="txtUserID"]').type(username);
-  await page.locator('input[id="txtPassword"]').type(password);
+  await page.waitForLoadState('networkidle');
+  await page.locator('input[id="txtUserID"]').fill(username);
+  await page.locator('input[id="txtPassword"]').fill(password);
   await page.locator('#submit_row .loginButton').click();
 };
 
-const getAttributes = async (element) => {
-  const attributes = await element.evaluate(async (ele) => ele.getAttributeNames());
+const getAttributes = async element => {
+  const attributes = await element.evaluate(async ele => ele.getAttributeNames());
   return attributes;
 };
 
-const getFormattedDate = (date) => {
+const getFormattedDate = date => {
   if (!date) {
     return date;
   }
@@ -52,10 +54,9 @@ const calculateCoverage = async (page, outputDir) => {
   const coverageData = await page.evaluate(() => window.__coverage__);
   expect(coverageData, 'expect found Istanbul data: __coverage__').toBeTruthy();
   // coverage report
-  const report = await attachCoverageReport(coverageData, test.info(), {
+  await attachCoverageReport(coverageData, test.info(), {
     outputDir
   });
-  console.log(report.summary);
   await page.close();
 };
 

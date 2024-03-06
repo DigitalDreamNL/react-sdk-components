@@ -1,10 +1,10 @@
-import React from 'react';
 import { KeyboardDatePicker } from '@material-ui/pickers';
+
 import handleEvent from '../../helpers/event-utils';
 import { format } from '../../helpers/formatters';
 import { dateFormatInfoDefault, getDateFormatInfo } from '../../helpers/date-format-utils';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-import type { PConnFieldProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
 // Will return the date string in YYYY-MM-DD format which we'll be POSTing to the server
 function getFormattedDate(date) {
@@ -39,7 +39,7 @@ export default function Date(props: DateProps) {
 
   const pConn = getPConnect();
   const actions = pConn.getActionsApi();
-  const propName = pConn.getStateProps()["value"];
+  const propName = (pConn.getStateProps() as any).value;
   const helperTextToDisplay = validatemessage || helperText;
 
   // Start with default dateFormatInfo
@@ -51,13 +51,17 @@ export default function Date(props: DateProps) {
   dateFormatInfo.dateFormatMask = theDateFormat.dateFormatMask;
 
   if (displayMode === 'LABELS_LEFT') {
-    const formattedDate = format(props.value, 'date', { format: dateFormatInfo.dateFormatString });
+    const formattedDate = format(props.value, 'date', {
+      format: dateFormatInfo.dateFormatString
+    });
     return <FieldValueList name={hideLabel ? '' : label} value={formattedDate} />;
   }
 
   if (displayMode === 'STACKED_LARGE_VAL') {
-    const formattedDate = format(props.value, 'date', { format: dateFormatInfo.dateFormatString });
-    return <FieldValueList name={hideLabel ? '' : label} value={formattedDate} variant="stacked" />;
+    const formattedDate = format(props.value, 'date', {
+      format: dateFormatInfo.dateFormatString
+    });
+    return <FieldValueList name={hideLabel ? '' : label} value={formattedDate} variant='stacked' />;
   }
 
   if (readOnly) {
@@ -71,13 +75,13 @@ export default function Date(props: DateProps) {
     'data-test-id': testId
   };
 
-  const handleChange = (date) => {
+  const handleChange = date => {
     if (date && date.isValid()) {
       onChange({ value: getFormattedDate(date) });
     }
   };
 
-  const handleAccept = (date) => {
+  const handleAccept = date => {
     if (date && date.isValid()) {
       handleEvent(actions, 'changeNblur', propName, getFormattedDate(date));
     }
@@ -86,8 +90,8 @@ export default function Date(props: DateProps) {
   return (
     <KeyboardDatePicker
       disableToolbar
-      variant="inline"
-      inputVariant="outlined"
+      variant='inline'
+      inputVariant='outlined'
       placeholder={dateFormatInfo.dateFormatStringLC}
       format={dateFormatInfo.dateFormatString}
       mask={dateFormatInfo.dateFormatMask}
@@ -97,7 +101,7 @@ export default function Date(props: DateProps) {
       disabled={disabled}
       error={status === 'error'}
       helperText={helperTextToDisplay}
-      size="small"
+      size='small'
       label={label}
       value={value || null}
       onChange={handleChange}

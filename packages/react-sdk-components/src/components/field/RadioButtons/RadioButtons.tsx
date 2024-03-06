@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Radio, RadioGroup, FormControl, FormControlLabel, FormLabel, FormHelperText } from '@material-ui/core';
 
 import Utils from '../../helpers/utils';
 import handleEvent from '../../helpers/event-utils';
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
-// import type { PConnFieldProps } from '../../../types/PConnProps';
+import { PConnFieldProps } from '../../../types/PConnProps';
 
 // Can't use RadioButtonProps until getLocaleRuleNameFromKeys is NOT private
-// interface RadioButtonsProps extends PConnFieldProps {
-//   // If any, enter additional props that only exist on RadioButtons here
-//   inline: boolean,
-//   fieldMetadata?: any
-// }
+interface RadioButtonsProps extends PConnFieldProps {
+  // If any, enter additional props that only exist on RadioButtons here
+  inline: boolean;
+  fieldMetadata?: any;
+}
 
-
-export default function RadioButtons(props /* : RadioButtonsProps */ ) {
+export default function RadioButtons(props: RadioButtonsProps) {
   // Get emitted components from map (so we can get any override that may exist)
   const FieldValueList = getComponentFromMap('FieldValueList');
 
@@ -37,15 +36,15 @@ export default function RadioButtons(props /* : RadioButtonsProps */ ) {
   const thePConn = getPConnect();
   const theConfigProps = thePConn.getConfigProps();
   const actionsApi = thePConn.getActionsApi();
-  const propName = thePConn.getStateProps()["value"];
+  const propName = (thePConn.getStateProps() as any).value;
   const helperTextToDisplay = validatemessage || helperText;
   const className = thePConn.getCaseInfo().getClassName();
 
-  let configProperty = thePConn.getRawMetadata()?.config?.value || '';
+  let configProperty = (thePConn.getRawMetadata() as any)?.config?.value || '';
   configProperty = configProperty.startsWith('@P') ? configProperty.substring(3) : configProperty;
   configProperty = configProperty.startsWith('.') ? configProperty.substring(1) : configProperty;
 
-  const metaData = Array.isArray(fieldMetadata) ? fieldMetadata.filter((field) => field?.classID === className)[0] : fieldMetadata;
+  const metaData = Array.isArray(fieldMetadata) ? fieldMetadata.filter(field => field?.classID === className)[0] : fieldMetadata;
   let displayName = metaData?.datasource?.propertyForDisplayText;
   displayName = displayName?.slice(displayName.lastIndexOf('.') + 1);
   const localeContext = metaData?.datasource?.tableType === 'DataPage' ? 'datapage' : 'associated';
@@ -66,6 +65,7 @@ export default function RadioButtons(props /* : RadioButtonsProps */ ) {
     return (
       <FieldValueList
         name={hideLabel ? '' : label}
+        // @ts-ignore - Property 'getLocaleRuleNameFromKeys' is private and only accessible within class 'C11nEnv'
         value={thePConn.getLocalizedValue(value, localePath, thePConn.getLocaleRuleNameFromKeys(localeClass, localeContext, localeName))}
       />
     );
@@ -75,25 +75,26 @@ export default function RadioButtons(props /* : RadioButtonsProps */ ) {
     return (
       <FieldValueList
         name={hideLabel ? '' : label}
+        // @ts-ignore - Property 'getLocaleRuleNameFromKeys' is private and only accessible within class 'C11nEnv'
         value={thePConn.getLocalizedValue(value, localePath, thePConn.getLocaleRuleNameFromKeys(localeClass, localeContext, localeName))}
-        variant="stacked"
+        variant='stacked'
       />
     );
   }
 
-  const handleChange = (event) => {
+  const handleChange = event => {
     handleEvent(actionsApi, 'changeNblur', propName, event.target.value);
   };
 
-  const handleBlur = (event) => {
+  const handleBlur = event => {
     thePConn.getValidationApi().validate(event.target.value, ''); // 2nd arg empty string until typedef marked correctly as optional
   };
 
   return (
     <FormControl error={status === 'error'} required={required}>
-      <FormLabel component="legend">{label}</FormLabel>
+      <FormLabel component='legend'>{label}</FormLabel>
       <RadioGroup value={theSelectedButton} onChange={handleChange} onBlur={!readOnly ? handleBlur : undefined} row={inline}>
-        {theOptions.map((theOption) => {
+        {theOptions.map(theOption => {
           return (
             <FormControlLabel
               value={theOption.key}
@@ -101,9 +102,10 @@ export default function RadioButtons(props /* : RadioButtonsProps */ ) {
               label={thePConn.getLocalizedValue(
                 theOption.value,
                 localePath,
+                // @ts-ignore - Property 'getLocaleRuleNameFromKeys' is private and only accessible within class 'C11nEnv'
                 thePConn.getLocaleRuleNameFromKeys(localeClass, localeContext, localeName)
               )}
-              control={<Radio key={theOption.key} color="primary" disabled={readOnly} />}
+              control={<Radio key={theOption.key} color='primary' disabled={readOnly} />}
             />
           );
         })}

@@ -1,6 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
-/* eslint-disable no-undef */
-
 const { test, expect } = require('@playwright/test');
 
 const config = require('../../../config');
@@ -44,7 +41,7 @@ test.describe('E2E test', () => {
     /* Testing the filters */
     let filters = page.locator('div[id="filters"]');
     const caseIdFilter = filters.locator('div:has-text("Case ID")');
-    caseIdFilter.locator('input').type(caseID);
+    caseIdFilter.locator('input').fill(caseID);
 
     await expect(page.locator(`td >> text=${caseID}`)).toBeVisible();
     await expect(page.locator('td >> text="Complex  Fields" >> nth=1')).toBeVisible();
@@ -54,7 +51,7 @@ test.describe('E2E test', () => {
     const dateFilter = filters.locator('div:has-text("Create date/time")');
     dateFilter.locator('input').click();
     const datePicker = filters.locator(
-      'div[class="react-datepicker-popper"] div[class="react-datepicker"] div[class="react-datepicker__month-container"] div[role="listbox"]'
+      'div[class="react-datepicker-popper"] div[class="react-datepicker"] div[class="react-datepicker__month-container"]'
     );
     const day = new Date();
     const nextDay = new Date(day);
@@ -67,12 +64,14 @@ test.describe('E2E test', () => {
 
     const complexTable = page.locator('div[id="list-view"] >> nth=0');
 
-    await expect(complexTable.locator(`td:has-text("${day.getDate()}")`)).toBeVisible();
+    await expect(complexTable.locator(`td:has-text("${day.getDate().toString().padStart(2, '0')}")`)).toBeVisible();
 
     let pagination = page.locator('div[id="pagination"]');
     await expect(pagination.locator('p:has-text("1-1 of 1")')).toBeVisible();
 
     await page.locator('a:has-text("Clear All")').click();
+
+    await page.waitForLoadState('networkidle');
 
     await expect(pagination.locator('p:has-text("1-1 of 1")')).toBeHidden();
   }, 10000);

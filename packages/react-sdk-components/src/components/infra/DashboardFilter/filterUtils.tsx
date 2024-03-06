@@ -2,12 +2,8 @@
 /** This file contains various utility methods to generate filter components, regionLayout data, filter expressions, etc.  */
 
 import { Grid, Link } from '@material-ui/core';
-import React from 'react';
+
 import DashboardFilter from './DashboardFilter';
-
-// Remove this and use "real" PCore type once .d.ts is fixed (currently shows 5 errors)
-declare const PCore: any;
-
 
 export const createFilter = (value, fieldId, comparator = 'EQ') => {
   return {
@@ -48,11 +44,9 @@ export const createFilterComponent = (getPConnect, filterMeta, index) => {
   if (name.indexOf('.') !== -1) {
     cleanedName = name.substring(name.indexOf('.') + 1);
   }
-  let propInfo = PCore.getMetadataUtils().getPropertyMetadata(
-    cleanedName,
-    filterMeta.config.ruleClass
-  );
+  let propInfo: any = PCore.getMetadataUtils().getPropertyMetadata(cleanedName, filterMeta.config.ruleClass);
   if (!propInfo) {
+    // @ts-ignore - PCore.getMetadataUtils().getPropertyMetadata - An argument for 'currentClassID' was not provided.
     propInfo = PCore.getMetadataUtils().getPropertyMetadata(cleanedName);
   }
   const { type: propertyType } = propInfo || { type: 'Text' };
@@ -62,16 +56,7 @@ export const createFilterComponent = (getPConnect, filterMeta, index) => {
   const type = filterType || filterMeta.type;
   const filterProp = `.pyDashboardFilter${index}`;
   if (type === 'DateTime') {
-    return (
-      <DashboardFilter
-        key={name}
-        getPConnect={getPConnect}
-        name={name}
-        filterProp={filterProp}
-        metadata={filterMeta}
-        type={filterMeta.type}
-      ></DashboardFilter>
-    );
+    return <DashboardFilter key={name} getPConnect={getPConnect} name={name} filterProp={filterProp} metadata={filterMeta} type={filterMeta.type} />;
   }
   if (datasource && datasource.fields) {
     datasource.fields.key = datasource.fields.value;
@@ -83,33 +68,22 @@ export const createFilterComponent = (getPConnect, filterMeta, index) => {
   filterMeta.type = filterMeta.config.displayAs || type;
   filterMeta.config.placeholder = 'ALL';
   return (
-    <DashboardFilter
-      key={name}
-      getPConnect={getPConnect}
-      name={name}
-      filterProp={filterProp}
-      metadata={filterMeta}
-      type={filterMeta.type}
-    >
-      {getPConnect().createComponent(filterMeta,
-        '', '', {})}
+    <DashboardFilter key={name} getPConnect={getPConnect} name={name} filterProp={filterProp} metadata={filterMeta} type={filterMeta.type}>
+      {getPConnect().createComponent(filterMeta, '', '', {})}
     </DashboardFilter>
   );
 };
 
 export const buildFilterComponents = (getPConnect, allFilters) => {
-  const filterComponents = allFilters.children.map((filter, index) =>
-    createFilterComponent(getPConnect, filter, index)
-  );
+  const filterComponents = allFilters.children.map((filter, index) => createFilterComponent(getPConnect, filter, index));
   if (filterComponents && filterComponents.length > 0) {
     filterComponents.push(
       <Grid>
         <Link
           style={{ cursor: 'pointer' }}
           onClick={() => {
-            PCore.getPubSubUtils().publish(
-              PCore.getConstants().PUB_SUB_EVENTS.EVENT_DASHBOARD_FILTER_CLEAR_ALL
-            );
+            // @ts-ignore - second parameter “payload” for publish method should be optional
+            PCore.getPubSubUtils().publish(PCore.getConstants().PUB_SUB_EVENTS.EVENT_DASHBOARD_FILTER_CLEAR_ALL);
           }}
         >
           Clear All
@@ -137,7 +111,7 @@ export const getFilterExpression = (filterValue, name, metadata) => {
   if (metadata.config.filterType && metadata.config.filterType === 'RelativeDates') {
     const fieldSource = metadata.config.datasource.filter(source => source.key === filterValue)[0];
     const relativeDateExpression = JSON.parse(fieldSource.json);
-    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const fields = [
       {
         name: relativeDateExpression.condition.lhs.field,
@@ -168,9 +142,7 @@ export function getLayoutDataFromRegion(regionData) {
       const itemPConnect = item?.getPConnect();
 
       return {
-        id: itemPConnect?.getComponentName()
-          ? `${itemPConnect.getComponentName()}--${index}`
-          : `item--${index}`,
+        id: itemPConnect?.getComponentName() ? `${itemPConnect.getComponentName()}--${index}` : `item--${index}`,
         content: itemPConnect?.getComponent(),
         layoutConfig: {
           ...defaultLayoutConfig,
@@ -184,8 +156,5 @@ export const getFormattedDate = date => {
   if (!date) {
     return date;
   }
-  const formattedDate = `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${(
-    '0' + date.getDate()
-  ).slice(-2)}`;
-  return formattedDate;
+  return `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)}`;
 };

@@ -1,29 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+
 import { getComponentFromMap } from '../../../bridge/helpers/sdk_component_map';
 
-// import type { PConnProps } from '../../../types/PConnProps';
+import { PConnProps } from '../../../types/PConnProps';
 
-// Can't use AssignmentProps until the following are NOT private
-//  getCaseInfo().isAssignmentInCreateStage()
-//  getCaseInfo().isLocalAction()
-// interface AssignmentProps extends PConnProps {
-//   // If any, enter additional props that only exist on this component
-//   children: Array<any>,
-//   itemKey: string,
-//   isInModal: boolean,
-//   banners: Array<any>
-//   // eslint-disable-next-line react/no-unused-prop-types
-//   actionButtons: Array<any>,
-// }
+interface AssignmentProps extends PConnProps {
+  // If any, enter additional props that only exist on this component
+  itemKey: string;
+  isInModal: boolean;
+  banners: any[];
+  // eslint-disable-next-line react/no-unused-prop-types
+  actionButtons: any[];
+}
 
-
-export default function Assignment(props /* : AssignmentProps */) {
+export default function Assignment(props: PropsWithChildren<AssignmentProps>) {
   // Get emitted components from map (so we can get any override that may exist)
-  const AssignmentCard = getComponentFromMap("AssignmentCard");
-  const MultiStep = getComponentFromMap("MultiStep");
+  const AssignmentCard = getComponentFromMap('AssignmentCard');
+  const MultiStep = getComponentFromMap('MultiStep');
 
   const { getPConnect, children, itemKey = '', isInModal = false, banners = [] } = props;
   const thePConn = getPConnect();
@@ -31,8 +27,8 @@ export default function Assignment(props /* : AssignmentProps */) {
   const [bHasNavigation, setHasNavigation] = useState(false);
   const [actionButtons, setActionButtons] = useState([]);
   const [bIsVertical, setIsVertical] = useState(false);
-  const [arCurrentStepIndicies, setArCurrentStepIndicies] = useState<Array<any>>([]);
-  const [arNavigationSteps, setArNavigationSteps] = useState<Array<any>>([]);
+  const [arCurrentStepIndicies, setArCurrentStepIndicies] = useState<any[]>([]);
+  const [arNavigationSteps, setArNavigationSteps] = useState<any[]>([]);
 
   const actionsAPI = thePConn.getActionsApi();
   const localizedVal = PCore.getLocaleUtils().getLocaleValue;
@@ -50,18 +46,14 @@ export default function Assignment(props /* : AssignmentProps */) {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  function findCurrentIndicies(
-    arStepperSteps: Array<any>,
-    arIndicies: Array<number>,
-    depth: number
-  ): Array<number> {
+  function findCurrentIndicies(arStepperSteps: any[], arIndicies: number[], depth: number): number[] {
     let count = 0;
     arStepperSteps.forEach(step => {
       if (step.visited_status === 'current') {
         arIndicies[depth] = count;
 
         // add in
-        step['step_status'] = '';
+        step.step_status = '';
       } else if (step.visited_status === 'success') {
         count += 1;
         step.step_status = 'completed';
@@ -79,15 +71,14 @@ export default function Assignment(props /* : AssignmentProps */) {
   }
 
   useEffect(() => {
-    if (children && children.length > 0) {
-      // debugger;
-
-      const oWorkItem = children[0].props.getPConnect();
+    if (children) {
+      const firstChild = Array.isArray(children) ? children[0] : children;
+      const oWorkItem = firstChild.props.getPConnect();
       const oWorkData = oWorkItem.getDataObject();
-      const oData = thePConn.getDataObject('');  // 1st arg empty string until typedefs allow it to be optional
+      const oData: any = thePConn.getDataObject(''); // 1st arg empty string until typedefs allow it to be optional
 
       if (oWorkData?.caseInfo && oWorkData.caseInfo.assignments !== null) {
-        const oCaseInfo = oData["caseInfo"];
+        const oCaseInfo = oData.caseInfo;
 
         if (oCaseInfo && oCaseInfo.actionButtons) {
           setActionButtons(oCaseInfo.actionButtons);
@@ -97,14 +88,11 @@ export default function Assignment(props /* : AssignmentProps */) {
           setHasNavigation(true);
 
           if (
-            oCaseInfo.navigation.template &&
-            oCaseInfo.navigation.template.toLowerCase() === 'standard'
+            (oCaseInfo.navigation.template && oCaseInfo.navigation.template.toLowerCase() === 'standard') ||
+            oCaseInfo?.navigation?.steps?.length === 1
           ) {
             setHasNavigation(false);
-          } else if (
-            oCaseInfo.navigation.template &&
-            oCaseInfo.navigation.template.toLowerCase() === 'vertical'
-          ) {
+          } else if (oCaseInfo.navigation.template && oCaseInfo.navigation.template.toLowerCase() === 'vertical') {
             setIsVertical(true);
           } else {
             setIsVertical(false);
@@ -116,9 +104,7 @@ export default function Assignment(props /* : AssignmentProps */) {
             }
           });
           setArNavigationSteps(steps);
-          setArCurrentStepIndicies(
-            findCurrentIndicies(arNavigationSteps, arCurrentStepIndicies, 0)
-          );
+          setArCurrentStepIndicies(findCurrentIndicies(arNavigationSteps, arCurrentStepIndicies, 0));
         }
       }
     }
@@ -141,10 +127,7 @@ export default function Assignment(props /* : AssignmentProps */) {
 
   function onSaveActionSuccess(data) {
     actionsAPI.cancelAssignment(itemKey).then(() => {
-      PCore.getPubSubUtils().publish(
-        PCore.getConstants().PUB_SUB_EVENTS.CASE_EVENTS.CREATE_STAGE_SAVED,
-        data
-      );
+      PCore.getPubSubUtils().publish(PCore.getConstants().PUB_SUB_EVENTS.CASE_EVENTS.CREATE_STAGE_SAVED, data);
     });
   }
 
@@ -170,9 +153,7 @@ export default function Assignment(props /* : AssignmentProps */) {
 
           savePromise
             .then(() => {
-              const caseType = thePConn
-                .getCaseInfo()
-                .c11nEnv.getValue(PCore.getConstants().CASE_INFO.CASE_TYPE_ID);
+              const caseType = thePConn.getCaseInfo().c11nEnv.getValue(PCore.getConstants().CASE_INFO.CASE_TYPE_ID);
               onSaveActionSuccess({ caseType, caseID, assignmentID });
             })
             .catch(() => {
@@ -186,11 +167,12 @@ export default function Assignment(props /* : AssignmentProps */) {
           // check if create stage (modal)
           const { PUB_SUB_EVENTS } = PCore.getConstants();
           const { publish } = PCore.getPubSubUtils();
+          // @ts-ignore - Property 'isAssignmentInCreateStage' is private and only accessible within class 'CaseInfo'
           const isAssignmentInCreateStage = thePConn.getCaseInfo().isAssignmentInCreateStage();
           const isLocalAction =
+            // @ts-ignore - Property 'isLocalAction' is private and only accessible within class 'CaseInfo'.
             thePConn.getCaseInfo().isLocalAction() ||
-            (PCore.getConstants().CASE_INFO.IS_LOCAL_ACTION &&
-              getPConnect().getValue(PCore.getConstants().CASE_INFO.IS_LOCAL_ACTION, ''));// 2nd arg empty string until typedefs allow it to be optional
+            (PCore.getConstants().CASE_INFO.IS_LOCAL_ACTION && getPConnect().getValue(PCore.getConstants().CASE_INFO.IS_LOCAL_ACTION));
           if (isAssignmentInCreateStage && isInModal && !isLocalAction) {
             const cancelPromise = cancelCreateStageAssignment(itemKey);
 
@@ -239,11 +221,50 @@ export default function Assignment(props /* : AssignmentProps */) {
     }
   }
 
+  function getRefreshProps(refreshConditions) {
+    // refreshConditions cuurently supports only "Changes" event
+    if (!refreshConditions) {
+      return [];
+    }
+    return refreshConditions.filter(item => item.event && item.event === 'Changes').map(item => [item.field, item.field?.substring(1)]) || [];
+  }
+
+  // expected format of refreshConditions : [{field: ".Name", event: "Changes"}]
+  // @ts-ignore - Property 'getActionRefreshConditions' is private and only accessible within class 'CaseInfo'
+  const refreshConditions = thePConn.getCaseInfo()?.getActionRefreshConditions();
+  const context = thePConn.getContextName();
+  const pageReference = thePConn.getPageReference();
+
+  // refresh api de-registration
+  PCore.getRefreshManager().deRegisterForRefresh(context);
+
+  // refresh api registration
+  const refreshProps = getRefreshProps(refreshConditions);
+  const caseKey = thePConn.getCaseInfo().getKey();
+  const refreshOptions = {
+    autoDetectRefresh: true,
+    preserveClientChanges: false
+  };
+  if (refreshProps.length > 0) {
+    refreshProps.forEach(prop => {
+      PCore.getRefreshManager().registerForRefresh(
+        'PROP_CHANGE',
+        thePConn.getActionsApi().refreshCaseView.bind(thePConn.getActionsApi(), caseKey, null, pageReference, {
+          ...refreshOptions,
+          refreshFor: prop[0]
+        }),
+        `${pageReference}.${prop[1]}`,
+        `${context}/${pageReference}`,
+        context
+      );
+    });
+  }
+
   return (
     <div id='Assignment'>
       {banners}
       {bHasNavigation ? (
-        <React.Fragment>
+        <>
           <MultiStep
             getPConnect={getPConnect}
             itemKey={itemKey}
@@ -261,25 +282,15 @@ export default function Assignment(props /* : AssignmentProps */) {
             onClose={handleSnackbarClose}
             message={snackbarMessage}
             action={
-              <IconButton
-                size='small'
-                aria-label='close'
-                color='inherit'
-                onClick={handleSnackbarClose}
-              >
+              <IconButton size='small' aria-label='close' color='inherit' onClick={handleSnackbarClose}>
                 <CloseIcon fontSize='small' />
               </IconButton>
             }
           />
-        </React.Fragment>
+        </>
       ) : (
-        <React.Fragment>
-          <AssignmentCard
-            getPConnect={getPConnect}
-            itemKey={itemKey}
-            actionButtons={actionButtons}
-            onButtonPress={buttonPress}
-          >
+        <>
+          <AssignmentCard getPConnect={getPConnect} itemKey={itemKey} actionButtons={actionButtons} onButtonPress={buttonPress}>
             {children}
           </AssignmentCard>
           <Snackbar
@@ -288,17 +299,12 @@ export default function Assignment(props /* : AssignmentProps */) {
             onClose={handleSnackbarClose}
             message={snackbarMessage}
             action={
-              <IconButton
-                size='small'
-                aria-label='close'
-                color='inherit'
-                onClick={handleSnackbarClose}
-              >
+              <IconButton size='small' aria-label='close' color='inherit' onClick={handleSnackbarClose}>
                 <CloseIcon fontSize='small' />
               </IconButton>
             }
           />
-        </React.Fragment>
+        </>
       )}
     </div>
   );

@@ -2,18 +2,18 @@ import React, { useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import type { PConnProps } from '../../../types/PConnProps';
+
+import { PConnProps } from '../../../types/PConnProps';
 
 interface CaseViewActionsMenuProps extends PConnProps {
   // If any, enter additional props that only exist on this component
-  availableActions: Array<any>,
-  availableProcesses: Array<any>,
-  caseTypeID: string,
-  caseTypeName: string
+  availableActions: any[];
+  availableProcesses: any[];
+  caseTypeID: string;
+  caseTypeName: string;
 }
 
-
-export default function CaseViewActionsMenu(props:CaseViewActionsMenuProps) {
+export default function CaseViewActionsMenu(props: CaseViewActionsMenuProps) {
   const { getPConnect, availableActions, availableProcesses, caseTypeID, caseTypeName } = props;
   const thePConn = getPConnect();
 
@@ -31,14 +31,27 @@ export default function CaseViewActionsMenu(props:CaseViewActionsMenuProps) {
     setAnchorEl(null);
   };
 
-  const arMenuItems: Array<any> = [];
+  const arMenuItems: any[] = [];
 
   function _actionMenuActionsClick(data) {
     const actionsAPI = thePConn.getActionsApi();
     const openLocalAction = actionsAPI.openLocalAction.bind(actionsAPI);
 
-    openLocalAction(data.ID, { ...data, containerName: 'modal', type: 'express' });
+    openLocalAction(data.ID, {
+      ...data,
+      containerName: 'modal',
+      type: 'express'
+    });
     // after doing the action, close the menu...
+    handleClose();
+  }
+
+  function _actionMenuProcessClick(process) {
+    const actionsAPI = thePConn.getActionsApi();
+    const openProcessAction = actionsAPI.openProcessAction.bind(actionsAPI);
+    openProcessAction(process.ID, {
+      ...process
+    });
     handleClose();
   }
 
@@ -51,23 +64,21 @@ export default function CaseViewActionsMenu(props:CaseViewActionsMenuProps) {
   });
 
   availableProcesses.forEach(process => {
-    arMenuItems.push(<MenuItem onClick={handleClose}>{process.name}</MenuItem>);
+    arMenuItems.push(
+      <MenuItem key={process.ID} onClick={() => _actionMenuProcessClick(process)}>
+        {localizedVal(process.name, '', localeKey)}
+      </MenuItem>
+    );
   });
 
   return (
-    <React.Fragment>
+    <>
       <Button aria-controls='simple-menu' aria-haspopup='true' onClick={handleClick}>
         {localizedVal('Actions...', localeCategory)}
       </Button>
-      <Menu
-        id='simple-menu'
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-      >
+      <Menu id='simple-menu' anchorEl={anchorEl} keepMounted open={Boolean(anchorEl)} onClose={handleClose}>
         {arMenuItems}
       </Menu>
-    </React.Fragment>
+    </>
   );
 }

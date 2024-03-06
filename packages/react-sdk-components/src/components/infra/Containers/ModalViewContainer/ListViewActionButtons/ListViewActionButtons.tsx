@@ -1,7 +1,7 @@
-import React from 'react';
 import { useState } from 'react';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
+import { PConnProps } from '../../../../../types/PConnProps';
 
 const useStyles = makeStyles((/* theme */) => ({
   button: {
@@ -14,7 +14,13 @@ const useStyles = makeStyles((/* theme */) => ({
   }
 }));
 
-function ListViewActionButtons(props) {
+interface ListViewActionButtonsProps extends PConnProps {
+  // If any, enter additional props that only exist on this component
+  context: string;
+  closeActionsDialog: Function;
+}
+
+function ListViewActionButtons(props: ListViewActionButtonsProps) {
   const { getPConnect, context, closeActionsDialog } = props;
   const classes = useStyles();
   const localizedVal = PCore.getLocaleUtils().getLocaleValue;
@@ -25,8 +31,8 @@ function ListViewActionButtons(props) {
     <div className={classes.div}>
       <Button
         className={classes.button}
-        variant="contained"
-        color="secondary"
+        variant='contained'
+        color='secondary'
         onClick={() => {
           closeActionsDialog();
           getPConnect().getActionsApi().cancelDataObject(context);
@@ -36,8 +42,8 @@ function ListViewActionButtons(props) {
       </Button>
       <Button
         className={classes.button}
-        variant="contained"
-        color="primary"
+        variant='contained'
+        color='primary'
         disabled={isDisabled}
         onClick={() => {
           setIsDisabled(true);
@@ -47,8 +53,8 @@ function ListViewActionButtons(props) {
             .then(() => {})
             .finally(() => {
               setIsDisabled(false);
+              closeActionsDialog();
             });
-          closeActionsDialog();
         }}
       >
         {localizedVal('Submit', localeCategory)}

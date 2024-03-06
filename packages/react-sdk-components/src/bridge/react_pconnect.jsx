@@ -1,9 +1,11 @@
 /* eslint-disable max-classes-per-file */
-import React, { Component, createElement } from 'react';
+import { Component, createElement } from 'react';
 import PropTypes from 'prop-types';
 import { connect, shallowEqual } from 'react-redux';
 
 import ComponentMap, { LazyMap as LazyComponentMap } from '../components_map'; // was '../../../../../src/components_map';
+import ErrorBoundary from '../components/infra/ErrorBoundary';
+
 import StoreContext from './Context/StoreContext';
 
 // const pathToComponents = "../../../../../src/components";  /* When bridge was local, it was "../components" */
@@ -12,8 +14,6 @@ import StoreContext from './Context/StoreContext';
 // As we add components, we'll need to import them here and add to the switch statement
 //    below in getComponent!
 
-import ErrorBoundary from '../components/infra/ErrorBoundary';
-
 import { SdkComponentMap } from './helpers/sdk_component_map';
 
 const isClassIDCompare = (key, prev) => {
@@ -21,11 +21,7 @@ const isClassIDCompare = (key, prev) => {
 };
 
 const routingInfoCompare = (next, prev) => {
-  return (
-    'routingInfo' in next &&
-    (!shallowEqual(next.routingInfo, prev.routingInfo) ||
-      !PCore.isDeepEqual(next.routingInfo, prev.routingInfo))
-  );
+  return 'routingInfo' in next && (!shallowEqual(next.routingInfo, prev.routingInfo) || !PCore.isDeepEqual(next.routingInfo, prev.routingInfo));
 };
 
 /** Generate unique id for elements */
@@ -36,10 +32,7 @@ const createUID = () => {
 export const setVisibilityForList = (c11nEnv, visibility) => {
   const { selectionMode, selectionList, renderMode, referenceList } = c11nEnv.getComponentConfig();
   // usecase:multiselect, fieldgroup, editable table
-  if (
-    (selectionMode === PCore.getConstants().LIST_SELECTION_MODE.MULTI && selectionList) ||
-    (renderMode === 'Editable' && referenceList)
-  ) {
+  if ((selectionMode === PCore.getConstants().LIST_SELECTION_MODE.MULTI && selectionList) || (renderMode === 'Editable' && referenceList)) {
     c11nEnv.getListActions().setVisibility(visibility);
   }
 };
@@ -74,9 +67,7 @@ const connectRedux = (component, c11nEnv) => {
       if (typeof component.additionalProps === 'object') {
         addProps = c11nEnv.resolveConfigProps(component.additionalProps);
       } else if (typeof component.additionalProps === 'function') {
-        addProps = c11nEnv.resolveConfigProps(
-          component.additionalProps(state, ownProps.getPConnect)
-        );
+        addProps = c11nEnv.resolveConfigProps(component.additionalProps(state, ownProps.getPConnect));
       }
 
       c11nEnv.getConfigProps(obj);
@@ -96,7 +87,7 @@ const connectRedux = (component, c11nEnv) => {
       context: StoreContext,
       areStatePropsEqual: (next, prev) => {
         const allStateProps = c11nEnv.getStateProps();
-        for (const key in allStateProps) {
+        for (const key of Object.keys(allStateProps)) {
           if (
             (isClassIDCompare(key, prev) && !shallowEqual(next[key], prev[key])) ||
             (next.routingInfo && !PCore.isDeepEqual(next.routingInfo, prev.routingInfo))
@@ -108,7 +99,7 @@ const connectRedux = (component, c11nEnv) => {
         // For CaseSummary (when status === ".pyStatusWork"), we need to compare changes in
         //  primaryFields and secondary Fields
         if (allStateProps.status === '.pyStatusWork') {
-          for (const key in prev) {
+          for (const key of Object.keys(prev)) {
             if (!PCore.isDeepEqual(next[key], prev[key])) {
               return false;
             }
@@ -142,8 +133,7 @@ const getComponent = c11nEnv => {
         console.log(`react_pconnect getComponent found ${componentType}: Local`);
         component = theLocalComponent;
       } else {
-        const thePegaProvidedComponent =
-          SdkComponentMap.getPegaProvidedComponentMap()[componentType];
+        const thePegaProvidedComponent = SdkComponentMap.getPegaProvidedComponentMap()[componentType];
         if (thePegaProvidedComponent !== undefined) {
           // console.log(`react_pconnect getComponent found ${componentType}: Pega-provided`);
           component = thePegaProvidedComponent;
@@ -201,6 +191,7 @@ const createPConnectComponent = () => {
       this.changeHandler = this.changeHandler.bind(this);
 
       this.c11nEnv = getPConnect();
+      // eslint-disable-next-line react/no-unused-class-component-methods
       this.Control = getComponent(this.c11nEnv);
       this.actionsAPI = this.c11nEnv.getActionsApi();
 
@@ -222,11 +213,7 @@ const createPConnectComponent = () => {
 
     componentDidCatch(error, info) {
       // eslint-disable-next-line no-console
-      console.error(
-        `Error while Rendering the component ${this.componentName} : `,
-        error,
-        info.componentStack
-      );
+      console.error(`Error while Rendering the component ${this.componentName} : `, error, info.componentStack);
     }
 
     componentWillUnmount() {
@@ -261,19 +248,20 @@ const createPConnectComponent = () => {
     createChildren() {
       const { getPConnect } = this.props;
       if (getPConnect().hasChildren() && getPConnect().getChildren()) {
-        return getPConnect()
-          .getChildren()
-          .map(childProps => <PConnect {...childProps} />);
+        return (
+          getPConnect()
+            .getChildren()
+            // eslint-disable-next-line react/no-array-index-key
+            .map((childProps, index) => <PConnect key={`${this.getKey(childProps)}_${index}`} {...childProps} />)
+        );
       }
       return null;
     }
 
-    getKey() {
-      const { getPConnect } = this.props;
+    getKey(props = this.props) {
+      const { getPConnect } = props;
       const viewName = getPConnect().getConfigProps().name || getPConnect().getCurrentView();
-      let key = !viewName
-        ? createUID()
-        : `${viewName}!${getPConnect().getCurrentClassID() || createUID()}`;
+      let key = !viewName ? createUID() : `${viewName}!${getPConnect().getCurrentClassID() || createUID()}`;
 
       // In the case of pyDetails the key must be unigue for each instance
       if (viewName && viewName.toUpperCase() === 'PYDETAILS') {
@@ -363,9 +351,7 @@ document.addEventListener('SdkConstellationReady', () => {
           }
           if (ComponentMap[comp].scripts && ComponentMap[comp].scripts.length) {
             ComponentMap[comp].scripts.forEach(script => {
-              promises.push(
-                PCore.getAssetLoader().getLoader()(script, 'script')
-              );
+              promises.push(PCore.getAssetLoader().getLoader()(script, 'script'));
             });
           }
         }
